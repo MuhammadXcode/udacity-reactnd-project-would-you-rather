@@ -1,25 +1,41 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { Component, Fragment } from "react";
+import { BrowserRouter as Router } from "react-router-dom";
+import { connect } from "react-redux";
+import { handleInitialData } from "./actions/shared";
+import LoadingBar from "react-redux-loading";
+import NavBar from "./components/NavBar";
+import Routes from "./components/Routes";
+import Login from "./components/Login";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+  componentDidMount() {
+    this.props.dispatch(handleInitialData());
+  }
+
+  render() {
+    const { initialized, authorized } = this.props;
+    return (
+      <Router>
+        <Fragment>
+          <LoadingBar />
+          <div className="container">
+            {initialized && <NavBar />}
+            {authorized && initialized && <Routes />}
+            {!authorized && initialized && <Login />}
+          </div>
+        </Fragment>
+      </Router>
+    );
+  }
 }
 
-export default App;
+function mapStateToProps({ authedUser, users, questions }) {
+  return {
+    users,
+    initialized:
+      Object.keys(users).length > 0 && Object.keys(questions).length > 0,
+    authorized: authedUser != null,
+  };
+}
+
+export default connect(mapStateToProps)(App);
